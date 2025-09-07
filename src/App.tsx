@@ -1,21 +1,50 @@
 import './App.css'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import axios from 'axios'
+import Row from './components/row';
+
+const url = "http://localhost:3001"
+
+interface Task {
+  id: number;
+  description: string;
+}
 
 function App() {
   const [task, setTask] = useState('')
-  const [tasks, setTasks] = useState<string[]>([])
+  const [tasks, setTasks] = useState<Task[]>([])
+
+  useEffect(() => {
+    axios.get(url)
+    .then(response => {
+    setTasks(response.data)
+    })
+    .catch(error => {
+    alert(error.response.data ? error.response.data.message : error)
+    })
+    }, [])
 
   const addTask = () => {
-    setTasks([...tasks,task])
+    const newTask = { description: task }
+    axios.post(url + "/create", {task: newTask})
+    .then(response => {
+    setTasks([...tasks,response.data])
     setTask('')
-    }    
-
-  const deleteTask = (deleted: string) => {
-    const withoutRemoved = tasks.filter(item => item!==deleted)
-    setTasks(withoutRemoved)
-    }
-      
+    })
+    .catch(error => {
+    alert(error.response ? error.response.data.error.message : error)
+    })
+  }
+    
+  const deleteTask = (deleted: number) => {
+    axios.delete(url + "/delete/" + deleted)
+    .then(response => {
+    setTasks(tasks.filter(item => item.id !== deleted))
+    })
+    .catch(error => {
+    alert(error.response ? error.response.data.error.message : error)
+    })
+  } 
 
   return (
       <div id="container">
@@ -33,21 +62,11 @@ function App() {
               }}
             />
           </form>
-        <ul>
-          {
-          tasks.map(item => (
-          <li>
-            {item}
-            <button
-              className='delete-button'
-              onClick={() => deleteTask(item)}
-              onMouseDown={(e: React.MouseEvent<HTMLButtonElement>) => e.preventDefault()}>
-              Delete
-            </button>
-          </li>
-          ))
-          }
-        </ul>
+          <ul>
+            {tasks.map(item => (
+              <Row key={item.id} item={item} deleteTask={deleteTask} />
+            ))}
+          </ul>
       </div>
   )
 }
