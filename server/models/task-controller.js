@@ -1,5 +1,6 @@
 import { selectAllTasks } from '../models/task.js'
 import { ApiError } from '../helper/error.js'
+import { insertTask, deleteTaskById } from '../models/task.js'
 
 const getTasks = async (req, res,next) => {
     try {
