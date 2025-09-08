@@ -23,12 +23,20 @@ describe('Testing basic database functionality', () => {
         })
 
     it("should delete task", async () => {
-        const response = await fetch("http://localhost:3001/delete/1", {
+        const newTask = { description: "Task to delete" };
+        const createResponse = await fetch("http://localhost:3001/create", {
+            method: "post",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ task: newTask })
+        });
+        const createdTask = await createResponse.json();
+
+        const response = await fetch(`http://localhost:3001/delete/${createdTask.id}`, {
             method: "delete"
-        })
-        const data = await response.json()
-        expect(response.status).to.equal(200)
-        expect(data).to.include.all.keys("id")
+        });
+        const data = await response.json();
+        expect(response.status).to.equal(200);
+        expect(data).to.include.all.keys("id");
     })
 
     it("should not create a new task without description", async () => {
